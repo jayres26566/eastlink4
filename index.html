@@ -77,75 +77,53 @@
       ["Downtown Redmond", [47.6694, -122.1195]]
     ];
 
-    const markers = [];
+    let line1, line2, connector;
 
-    function saveCoordinates() {
-      localStorage.setItem('stations1', JSON.stringify(stations1));
-      localStorage.setItem('stations2', JSON.stringify(stations2));
+    function drawLines() {
+      if (line1) map.removeLayer(line1);
+      if (line2) map.removeLayer(line2);
+      if (connector) map.removeLayer(connector);
+
+      const route1 = stations1.map(s => s[1]);
+      const route2 = stations2.map(s => s[1]);
+
+      line1 = L.polyline(route1, { color: 'green', weight: 4 }).addTo(map);
+      line2 = L.polyline(route2, { color: 'blue', weight: 4 }).addTo(map);
+
+      connector = L.polyline([
+        stations2.find(s => s[0] === "Judkins Park")[1],
+        stations1.find(s => s[0] === "ID/Chinatown")[1]
+      ], { color: 'blue', weight: 4 }).addTo(map);
     }
 
-    function loadCoordinates() {
-      const saved1 = localStorage.getItem('stations1');
-      const saved2 = localStorage.getItem('stations2');
-      if (saved1) stations1 = JSON.parse(saved1);
-      if (saved2) stations2 = JSON.parse(saved2);
+    function updateStationCoordinates() {
+      console.log('Updated 1 Line Stations:');
+      stations1.forEach(station => console.log(`${station[0]}: [${station[1][0].toFixed(6)}, ${station[1][1].toFixed(6)}]`));
+      console.log('Updated 2 Line Stations:');
+      stations2.forEach(station => console.log(`${station[0]}: [${station[1][0].toFixed(6)}, ${station[1][1].toFixed(6)}]`));
     }
 
-    loadCoordinates();
-
-    stations1.concat(stations2).forEach(([name, coords]) => {
-      const marker = L.marker(coords, {
-        icon: redIcon,
-        draggable: true
-      }).addTo(map);
-
-      marker.bindPopup(`<strong>${name}</strong>`);
-
+    stations1.forEach(station => {
+      const marker = L.marker(station[1], { icon: redIcon, draggable: true }).addTo(map).bindPopup(station[0]);
       marker.on('dragend', function (e) {
-        const { lat, lng } = e.target.getLatLng();
-        console.log(`${name}: [${lat.toFixed(6)}, ${lng.toFixed(6)}]`);
-        alert(`${name} moved to: [${lat.toFixed(6)}, ${lng.toFixed(6)}]`);
-        marker.setLatLng([lat, lng]);
-
-        let targetList = stations1.find(s => s[0] === name) ? stations1 : stations2;
-        const index = targetList.findIndex(s => s[0] === name);
-        if (index !== -1) targetList[index][1] = [lat, lng];
-
-        saveCoordinates();
-        drawRoutes();
+        station[1][0] = e.target.getLatLng().lat;
+        station[1][1] = e.target.getLatLng().lng;
+        drawLines();
+        updateStationCoordinates();
       });
-
-      markers.push({ name, marker });
     });
 
-    function getRouteFromMarkers(names) {
-      return names.map(name => {
-        const found = markers.find(m => m.name === name);
-        return found ? found.marker.getLatLng() : null;
-      }).filter(Boolean);
-    }
+    stations2.forEach(station => {
+      const marker = L.marker(station[1], { icon: redIcon, draggable: true }).addTo(map).bindPopup(station[0]);
+      marker.on('dragend', function (e) {
+        station[1][0] = e.target.getLatLng().lat;
+        station[1][1] = e.target.getLatLng().lng;
+        drawLines();
+        updateStationCoordinates();
+      });
+    });
 
-    let drawnRoutes = [];
-
-    function drawRoutes() {
-      drawnRoutes.forEach(route => map.removeLayer(route));
-      drawnRoutes = [];
-
-      const line1Names = stations1.map(s => s[0]);
-      const line2Names = stations2.map(s => s[0]);
-
-      const route1 = getRouteFromMarkers(line1Names);
-      const route2 = getRouteFromMarkers(line2Names);
-
-      const polyline1 = L.polyline(route1, { color: 'green', weight: 4 }).addTo(map);
-      const polyline2 = L.polyline(route2, { color: 'blue', weight: 4 }).addTo(map);
-      const judkinsToID = getRouteFromMarkers(["Judkins Park", "ID/Chinatown"]);
-      const connector = L.polyline(judkinsToID, { color: 'blue', weight: 4 }).addTo(map);
-
-      drawnRoutes.push(polyline1, polyline2, connector);
-    }
-
-    drawRoutes();
+    drawLines();
   </script>
 </body>
 </html>
