@@ -36,7 +36,7 @@
       popupAnchor: [0, -32]
     });
 
-    let stations1 = [
+    let stations1 = JSON.parse(localStorage.getItem('stations1')) || [
       ["Lynnwood City Center", [47.8298, -122.3050]],
       ["Mountlake Terrace", [47.7889, -122.3080]],
       ["Shoreline North/185th", [47.7637, -122.3205]],
@@ -62,7 +62,7 @@
       ["Angle Lake", [47.4245, -122.2963]]
     ];
 
-    let stations2 = [
+    let stations2 = JSON.parse(localStorage.getItem('stations2')) || [
       ["Judkins Park", [47.5905, -122.3007]],
       ["Mercer Island", [47.5908, -122.2325]],
       ["South Bellevue", [47.5824, -122.1978]],
@@ -96,11 +96,9 @@
       ], { color: 'blue', weight: 4 }).addTo(map);
     }
 
-    function updateStationCoordinates() {
-      console.log('Updated 1 Line Stations:');
-      stations1.forEach(station => console.log(`${station[0]}: [${station[1][0].toFixed(6)}, ${station[1][1].toFixed(6)}]`));
-      console.log('Updated 2 Line Stations:');
-      stations2.forEach(station => console.log(`${station[0]}: [${station[1][0].toFixed(6)}, ${station[1][1].toFixed(6)}]`));
+    function saveToLocalStorage() {
+      localStorage.setItem('stations1', JSON.stringify(stations1));
+      localStorage.setItem('stations2', JSON.stringify(stations2));
     }
 
     stations1.forEach(station => {
@@ -109,7 +107,7 @@
         station[1][0] = e.target.getLatLng().lat;
         station[1][1] = e.target.getLatLng().lng;
         drawLines();
-        updateStationCoordinates();
+        saveToLocalStorage();
       });
     });
 
@@ -119,7 +117,7 @@
         station[1][0] = e.target.getLatLng().lat;
         station[1][1] = e.target.getLatLng().lng;
         drawLines();
-        updateStationCoordinates();
+        saveToLocalStorage();
       });
     });
 
@@ -127,4 +125,5 @@
   </script>
 </body>
 </html>
+
 
