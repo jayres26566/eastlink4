@@ -36,7 +36,7 @@
       popupAnchor: [0, -32]
     });
 
-    const stations1 = [
+    let stations1 = [
       ["Lynnwood City Center", [47.8298, -122.3050]],
       ["Mountlake Terrace", [47.7889, -122.3080]],
       ["Shoreline North/185th", [47.7637, -122.3205]],
@@ -62,7 +62,7 @@
       ["Angle Lake", [47.4245, -122.2963]]
     ];
 
-    const stations2 = [
+    let stations2 = [
       ["Judkins Park", [47.5905, -122.3007]],
       ["Mercer Island", [47.5908, -122.2325]],
       ["South Bellevue", [47.5824, -122.1978]],
@@ -79,6 +79,20 @@
 
     const markers = [];
 
+    function saveCoordinates() {
+      localStorage.setItem('stations1', JSON.stringify(stations1));
+      localStorage.setItem('stations2', JSON.stringify(stations2));
+    }
+
+    function loadCoordinates() {
+      const saved1 = localStorage.getItem('stations1');
+      const saved2 = localStorage.getItem('stations2');
+      if (saved1) stations1 = JSON.parse(saved1);
+      if (saved2) stations2 = JSON.parse(saved2);
+    }
+
+    loadCoordinates();
+
     stations1.concat(stations2).forEach(([name, coords]) => {
       const marker = L.marker(coords, {
         icon: redIcon,
@@ -92,6 +106,12 @@
         console.log(`${name}: [${lat.toFixed(6)}, ${lng.toFixed(6)}]`);
         alert(`${name} moved to: [${lat.toFixed(6)}, ${lng.toFixed(6)}]`);
         marker.setLatLng([lat, lng]);
+
+        let targetList = stations1.find(s => s[0] === name) ? stations1 : stations2;
+        const index = targetList.findIndex(s => s[0] === name);
+        if (index !== -1) targetList[index][1] = [lat, lng];
+
+        saveCoordinates();
         drawRoutes();
       });
 
