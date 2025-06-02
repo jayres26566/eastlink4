@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Seattle Light Rail Interactive Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map { height: 100vh; width: 100%; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div style="position: fixed;
+       bottom: 40px; left: 40px; width: 160px; height: 70px;
+       background-color: white; z-index:9999; font-size:14px;
+       border:2px solid grey; border-radius:6px;
+       padding: 10px;">
+    <strong>Legend</strong><br>
+    <i style="background:green; width:10px; height:10px; display:inline-block;"></i> 1 Line<br>
+    <i style="background:blue; width:10px; height:10px; display:inline-block;"></i> 2 Line
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([47.6, -122.2], 10);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    const redIcon = new L.Icon({
+      iconUrl: 'https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -32]
+    });
+
+    const stations1 = [
+      ["Lynnwood City Center", [47.8298, -122.3050]],
+      ["Shoreline North/185th", [47.7637, -122.3205]],
+      ["Shoreline South/148th", [47.735753, -122.325040]],
+      ["Northgate", [47.7049, -122.3280]],
+      ["Roosevelt", [47.6762, -122.3170]],
+      ["U District", [47.6613, -122.3131]],
+      ["UW", [47.6500, -122.3032]],
+      ["Capitol Hill", [47.6190, -122.3205]],
+      ["Westlake", [47.6120, -122.3366]],
+      ["University Street", [47.6081, -122.3336]],
+      ["Pioneer Square", [47.6027, -122.3316]],
+      ["ID/Chinatown", [47.5983, -122.3271]],
+      ["Stadium", [47.5927, -122.3265]],
+      ["SODO", [47.5827, -122.3265]],
+      ["Beacon Hill", [47.5782, -122.3118]],
+      ["Mount Baker", [47.5789, -122.2973]],
+      ["Columbia City", [47.5723, -122.2930]],
+      ["Othello", [47.5376, -122.2812]],
+      ["Rainier Beach", [47.5226, -122.2765]],
+      ["Tukwila Int'l Blvd", [47.4649, -122.2887]],
+      ["SeaTac/Airport", [47.4439, -122.2965]]
+    ];
+
+    const stations2 = [
+      ["Judkins Park", [47.5905, -122.3007]],
+      ["Mercer Island", [47.5908, -122.2325]],
+      ["South Bellevue", [47.5824, -122.1978]],
+      ["East Main", [47.6156, -122.1935]],
+      ["Bellevue Downtown", [47.6173, -122.1995]],
+      ["Wilburton", [47.6186, -122.1853]],
+      ["Spring District", [47.6232, -122.1742]],
+      ["Bel-Red/130th", [47.6235, -122.1576]],
+      ["Overlake Village", [47.6321, -122.1417]],
+      ["Redmond Technology", [47.6394, -122.1342]],
+      ["Marymoor Village", [47.6625, -122.1207]],
+      ["Downtown Redmond", [47.6694, -122.1195]]
+    ];
+
+    stations1.concat(stations2).forEach(([name, coords]) => {
+      L.marker(coords, { icon: redIcon }).addTo(map).bindPopup(`<strong>${name}</strong>`);
+    });
+
+    function smoothRoute(coords) {
+      const result = [];
+      for (let i = 0; i < coords.length - 1; i++) {
+        const [lat1, lon1] = coords[i];
+        const [lat2, lon2] = coords[i + 1];
+        for (let j = 0; j < 10; j++) {
+          const lat = lat1 + (lat2 - lat1) * j / 10;
+          const lon = lon1 + (lon2 - lon1) * j / 10;
+          result.push([lat, lon]);
+        }
+      }
+      result.push(coords[coords.length - 1]);
+      return result;
+    }
+
+    const route1 = stations1.map(s => s[1]);
+    const route2 = stations2.map(s => s[1]);
+
+    L.polyline(smoothRoute(route1), { color: 'green', weight: 4 }).addTo(map);
+    L.polyline(smoothRoute(route2), { color: 'blue', weight: 4 }).addTo(map);
+
+    const judkinsToID = smoothRoute([
+      [47.5905, -122.3007],
+      [47.5983, -122.3271]
+    ]);
+    L.polyline(judkinsToID, { color: 'blue', weight: 4 }).addTo(map);
+  </script>
+</body>
+</html>
